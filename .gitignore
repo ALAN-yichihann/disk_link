@@ -1,4 +1,5 @@
 .venv/
 assets/
-appls.json
 __pycache__/
+appls.json
+errors.txt
