@@ -1,0 +1,4 @@
+.venv/
+assets/
+appls.json
+__pycache__/
