@@ -1,0 +1,53 @@
+{
+    "PROMPTS":{
+        "ENTRY_PROMPT":"请输入你想要执行的硬盘内程序或命令:",
+        "INVALID_PROMPT":"此程序或命令不存在，或命令格式不正确。",
+        "LANGUAGE_CN_PROMPT":"已修改语言为中文。",
+        "JOKE_PROMPT":"你觉得这样很好玩？",
+        "ALREADY_EXIST_PROMPT":"此程序名已存在，请更换注册名称。",
+        "NOT_FOUND_UNDER_ROUTE_PROMPT":"此路径下找不到指定程序。",
+        "PATH_CONFLICT_PROMPT":"此路径与已有路径冲突。",
+        "PATH_NOT_ON_DISK_PROMPT":"此路径不在硬盘中。",
+        "CONFIRM_ADD_SHORTCUT_PROMPT":"您是否确认添加程序快捷方式？(Y/n):",
+        "INVALID_FILE_EXTENSION_PROMPT":"文件后缀应为.exe。",
+        "SUCCESS_ADD_APPLICATION_PROMPT":"成功添加应用程序。",
+        "ADDING_ABORTED_PROMPT":"添加终止。",
+        "PROGRAM_NOT_FOUND_PROMPT":"此程序不存在。",
+        "SUCCESS_DELETE_SHORTCUT_PROMPT":"成功删除应用程序快捷方式。",
+        "CONFIRM_DELETE_SHORTCUT_PROMPT":"您是否确认删除该程序快捷方式？(Y/n):",
+        "DELETION_ABORTED_PROMPT":"删除终止。",
+        "PROGRAM_LIST_PROMPT":"以下是可使用的程序列表及对应路径:",
+        "FILE_NOT_FOUND_PROMPT":"找不到应用文件！",
+        "DATA_READ_ERROR_PROMPT":"存储数据读取错误！",
+        "ERROR_LOG_NOT_FOUND_PROMPT":"找不到错误记录文件！",
+        "FIX_NEEDED_PROMPT":"已修复，需要重新添加所有快捷方式。",
+        "FIX_WITH_RECORD_LOSS_PROMPT":"已修复，但丢失了之前所有错误记录。",
+        "NAME_CONFLICT_PROMPT":"程序名不得与命令名冲突。",
+        "NO_SHORTCUTS_PROMPT":"当前无任何快捷方式。",
+        "APPLICATION_PATH_ERROR_PROMPT":"应用与路径存储出现错误！",
+        "FIX_RESTORED_PROMPT":"已修复，并恢复至备份状态。请输入“list”查看受损情况。",
+        "NECESSARY_FILES_OK_PROMPT":"必要文件无问题。",
+        "ALL_COMMANDS_HEAD_PROMPT":"以下为可用命令及输入格式:",
+        "PROGRAM_MOVED_PROMPT":"程序不存在，路径可能已经被修改或移动。请输入“list”查看各程序路径，并依次用“del”和“append”删除和添加快捷方式。"
+    },
+    "COMMAND_HELPS":{
+        "language":"language [lang] | 设置语言，cn为中文，en为英文。",
+        "quit":"quit | 退出程序。",
+        "help":"help [ /cmd/appl] | 获取帮助。",
+        "append":"append [appl] at [dir] | 添加新程序快捷方式。",
+        "del":"del [appl] | 删除程序快捷方式。",
+        "list":"list | 列出所有已建立快捷方式的程序及路径。",
+        "jump":"jump [appl] | 跳到对应文件资源管理器页面。",
+        "check":"check | 检查必要文件是否缺失。"
+    },
+    "ALL_COMMANDS_FORMATTED":[
+        "language [lang]        | 设置语言，cn为中文，en为英文。",
+        "quit                   | 退出程序。",
+        "help [ /cmd/appl]      | 获取帮助。",
+        "append [appl] at [dir] | 添加新程序快捷方式。",
+        "del [appl]             | 删除程序快捷方式。",
+        "list                   | 列出所有已建立快捷方式的程序及路径。",
+        "jump [appl]            | 跳到此程序对应文件资源管理器页面。",
+        "check                  | 检查必要文件是否缺失。"
+    ]
+}
