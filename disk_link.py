@@ -6,6 +6,7 @@ from typing import List, Any
 from datetime import datetime
 
 from output import print_info, print_warning, print_error, input_confirm
+from errors import Errors
 
 class DiskLink:
     """管理程序的类"""
@@ -21,6 +22,8 @@ class DiskLink:
         print("""To get help, enter "help".\n""")
         print("正在初始化...")
         print("Initializing...\n")
+
+        self.errors = Errors(self)
 
         # 默认语言为中文
         self.language = "cn"
@@ -49,21 +52,6 @@ class DiskLink:
 
         # 输出程序位置
         print_info("当前程序位置:\nPresent Program Directory:\n" + application_path)
-
-        self.ERROR_LIST = (
-            "01010101(1)", # 应用文件丢失，无法修复
-            "01010101(2)", # 应用文件丢失，可以修复
-            "01010102(1)", # 读取错误，无法修复
-            "01010102(2)", # 读取错误，可以修复
-            "01010201", # 错误文件丢失
-        )
-        self.HANDLE_LIST = (
-            (17, 20),
-            (17, 25),
-            (18, 20),
-            (18, 25),
-            (19, 21),
-        )
 
         # 读取存储的应用和路径
         self.read_texts(True)
@@ -107,7 +95,7 @@ class DiskLink:
     def read_texts(self, first_time=False):
         """读取应用和路径"""
         # 检查必要文件
-        self.check_vitals(first_time)
+        self.errors.check_vitals(first_time)
 
         # 读取文件
         try:
@@ -118,12 +106,12 @@ class DiskLink:
         except json.decoder.JSONDecodeError:
             # 刚启动时无法修复
             if first_time:
-                self.error_inform("01010102(1)")
-                self.handle_error("01010102(1)")
+                self.errors.error_inform("01010102(1)")
+                self.errors.handle_error(["01010102(1)"])
             # 启动后可通过备份修复
             else:
-                self.error_inform("01010102(2)")
-                self.handle_error("01010101(2)")
+                self.errors.error_inform("01010102(2)")
+                self.errors.handle_error(["01010101(2)"])
 
     def run_appl(self):
         try:
@@ -163,7 +151,7 @@ class DiskLink:
 
         # 自检问题
         elif self.usr[0] == self.COMMANDS[7] and len(self.usr) == 1:
-            self.check_vitals(command=True)
+            self.errors.check_vitals(command=True)
 
         # 输出报错
         else:
@@ -392,7 +380,7 @@ class DiskLink:
                             json.dump(self.appls, f1)
                         self.create_save()
                     except FileNotFoundError:
-                        self.check_vitals()
+                        self.errors.check_vitals()
 
                     # 提示并重新读取
                     print_info("已添加程序:" + new_dir)
@@ -424,7 +412,7 @@ class DiskLink:
                         json.dump(self.appls, f)
                     self.create_save()
                 except FileNotFoundError:
-                    self.check_vitals()
+                    self.errors.check_vitals()
 
                 # 提示成功
                 print_info(self.prompts["SUCCESS_DELETE_SHORTCUT_PROMPT"])
@@ -464,78 +452,6 @@ class DiskLink:
         """备份"""
         self.save = self.appls.copy()
 
-    def check_vitals(self, first_time=False, command=False):
-        error = False
-        if self._missing_errors():
-            error = True
-            self.error_inform("01010201")
-            self.handle_error("01010201")
-        if first_time:
-            if self._missing_appls():
-                error = True
-                self.error_inform("01010101(1)")
-                self.handle_error("01010101(1)")
-        else:
-            if self._missing_appls():
-                error = True
-                self.error_inform("01010101(2)")
-                self.handle_error("01010101(2)")
-        if command and not error:
-            print_info(self.prompts["NECESSARY_FILES_OK_PROMPT"])
-
-
-
-    def _missing_appls(self):
-        """检查应用文件"""
-        appls_missing = True
-        if os.path.exists(self.DISK_NAME + "\\" + self.APPL_JSON_ROUTE):
-            appls_missing = False
-        return appls_missing
-
-    def _missing_errors(self):
-        error_missing = True
-        if os.path.exists(self.DISK_NAME + "\\" + self.ERROR_TXT_ROUTE):
-            error_missing = False
-        return error_missing
-
-    def error_inform(self, code, method = "inform"):
-        """告知错误"""
-        if method == "inform":
-            print_error(self.prompts[self.HANDLE_LIST[self.ERROR_LIST.index(code)][0]])
-            print_error(self.prompts[self.HANDLE_LIST[self.ERROR_LIST.index(code)][0]] + "修改标识符")
-        elif method == "solved":
-            print_warning(self.prompts[self.HANDLE_LIST[self.ERROR_LIST.index(code)][1]])
-            print_warning(self.prompts[self.HANDLE_LIST[self.ERROR_LIST.index(code)][1]] + "修改标识符")
-
-    def handle_error(self, code):
-        """处理错误"""
-        if code == self.ERROR_LIST[0]:# 应用文件丢失，无法修复
-            with open(self.DISK_NAME + "\\" + self.APPL_JSON_ROUTE, "a", encoding="utf-8") as f:
-                json.dump({}, f)
-            self.appls = {}
-        elif code == self.ERROR_LIST[1]:# 应用文件丢失，可以修复
-            with open(self.DISK_NAME + "\\" + self.APPL_JSON_ROUTE, "a", encoding="utf-8") as f:
-                json.dump(self.save, f)
-        elif code == self.ERROR_LIST[2]:# 读取错误，无法修复
-            with open(self.DISK_NAME + "\\" + self.APPL_JSON_ROUTE, "a", encoding="utf-8") as f:
-                json.dump({}, f)
-            self.appls = {}
-        elif code == self.ERROR_LIST[3]:# 读取错误，可以修复
-            with open(self.DISK_NAME + "\\" + self.APPL_JSON_ROUTE, "a", encoding="utf-8") as f:
-                json.dump(self.save, f)
-        elif code == self.ERROR_LIST[4]:# 错误文件丢失
-            with open(self.DISK_NAME + "\\" + self.ERROR_TXT_ROUTE, "a", encoding="utf-8"):
-                pass
-
-        self.record_error(code)
-        self.error_inform(code, "solved")
-
-    def record_error(self, code):
-        now = str(datetime.now().strftime('%Y/%m/%d %H:%M:%S'))
-        with open(self.DISK_NAME + "\\" + self.ERROR_TXT_ROUTE, "a", encoding="utf-8") as e:
-            e.write("code:" + code + " time:" + now + "\n")
-        del now
-
 if __name__ == '__main__':
     DL = DiskLink()
     DL.mainloop()
@@ -543,18 +459,3 @@ if __name__ == '__main__':
 # 测试语句
 # append rnd at F:\Memory\Software\Rand_Num\随机学号.exe
 # append pcl at F:\Memory\Software\Minecraft\Plain Craft Launcher 2.exe
-"""
-        self.ERROR_LIST = (
-            "01010101(1)", # 应用文件丢失，无法修复
-            "01010101(2)", # 应用文件丢失，可以修复
-            "01010102(1)", # 读取错误，无法修复
-            "01010102(2)", # 读取错误，可以修复
-            "01010201", # 错误文件丢失
-        )
-        self.HANDLE_LIST = (
-            (17, 20),
-            (17, 25),
-            (18, 20),
-            (18, 25),
-            (19, 21),
-        )"""
