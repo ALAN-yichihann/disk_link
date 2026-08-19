@@ -4,4 +4,4 @@ __pycache__/
 appls.json
 errors.txt
 试验.py
-errors.txt
+test/__pycache__/
