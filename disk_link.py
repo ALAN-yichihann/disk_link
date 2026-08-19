@@ -2,6 +2,7 @@ import os
 import sys
 import json
 
+from pathlib import Path
 from typing import List, Any
 from datetime import datetime
 
@@ -32,26 +33,21 @@ class DiskLink:
         # 设置命令
         self.COMMANDS = ('language', 'quit', 'help', "append", "del", "list", "jump", "check")
 
-        # 获取各种文件路径
+        # 获取程序所在路径（兼容打包与非打包环境）
         if getattr(sys, 'frozen', False):
-            application_path = os.path.dirname(sys.executable)
-            path_list = application_path.split(os.path.sep)
-            path_list.pop(0)
+            application_path = Path(sys.executable).resolve().parent
         else:
-            application_path = os.path.dirname(__file__)
-            path_list = application_path.split(os.path.sep)
-            path_list.pop(0)
+            application_path = Path(__file__).resolve().parent
 
-        self.APPL_JSON_ROUTE = "\\".join(path_list) + '\\appls.json'
-        self.ERROR_TXT_ROUTE = "\\".join(path_list) + '\\errors.txt'
-        # print(path_list)
-        # print(self.appl_txt_route)
+        # 应用存储文件与错误记录文件路径
+        self.APPL_JSON_ROUTE = application_path / "appls.json"
+        self.ERROR_TXT_ROUTE = application_path / "errors.txt"
 
-        # 获取路径和硬盘名称
-        self.DISK_NAME = application_path.split('\\')[0]
+        # 获取硬盘名称（盘符）
+        self.DISK_NAME = application_path.drive
 
         # 输出程序位置
-        print_info("当前程序位置:\nPresent Program Directory:\n" + application_path)
+        print_info("当前程序位置: " + str(application_path) + "\nPresent Program Directory: " + str(application_path) + "\n")
 
         # 读取存储的应用和路径
         self.read_texts(True)
@@ -64,7 +60,6 @@ class DiskLink:
 
         # 删除无用变量
         del application_path
-        del path_list
 
     def mainloop(self):
         """主进程"""
@@ -99,7 +94,7 @@ class DiskLink:
 
         # 读取文件
         try:
-            with open(self.DISK_NAME + "\\" + self.APPL_JSON_ROUTE) as f1:
+            with open(self.APPL_JSON_ROUTE) as f1:
                 self.appls = json.load(f1)
 
         # 读取出错
@@ -111,7 +106,7 @@ class DiskLink:
             # 启动后可通过备份修复
             else:
                 self.errors.error_inform("01010102(2)")
-                self.errors.handle_error(["01010101(2)"])
+                self.errors.handle_error(["01010102(2)"])
 
     def run_appl(self):
         try:
@@ -376,7 +371,7 @@ class DiskLink:
                     # 写入JSON
                     self.appls[new_appl] = new_dir
                     try:
-                        with open(self.DISK_NAME + "\\" + self.APPL_JSON_ROUTE, "w", encoding="utf-8") as f1:
+                        with open(self.APPL_JSON_ROUTE, "w", encoding="utf-8") as f1:
                             json.dump(self.appls, f1)
                         self.create_save()
                     except FileNotFoundError:
@@ -408,7 +403,7 @@ class DiskLink:
 
                 # 重写JSON
                 try:
-                    with open(self.DISK_NAME + "\\" + self.APPL_JSON_ROUTE, "w", encoding="utf-8") as f:
+                    with open(self.APPL_JSON_ROUTE, "w", encoding="utf-8") as f:
                         json.dump(self.appls, f)
                     self.create_save()
                 except FileNotFoundError:
