@@ -21,6 +21,7 @@ errors_backup = errors_path.read_text(encoding="utf-8")
 try:
     # 构造测试对象（不跑 __init__，避免交互）
     dl = DiskLink.__new__(DiskLink)
+    dl.BASE_DIR = root
     dl.DISK_NAME = Path(__file__).resolve().parent.drive
     dl.APPL_JSON_ROUTE = appls_path
     dl.ERROR_TXT_ROUTE = errors_path

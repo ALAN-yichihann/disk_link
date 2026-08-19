@@ -10,7 +10,7 @@
     "PATH_NOT_ON_DISK_PROMPT":"The path is not on the disk.",
     "CONFIRM_ADD_SHORTCUT_PROMPT":"Are you sure you want to add the application shortcut?(Y/n):",
     "INVALID_FILE_EXTENSION_PROMPT":"The filename extension should be .exe.",
-    "SUCCESS_ADD_APPLICATION_PROMPT":"Application appended successfully.",
+    "SUCCESS_ADD_APPLICATION_PROMPT":"Application appended successfully:",
     "ADDING_ABORTED_PROMPT":"Adding aborted.",
     "PROGRAM_NOT_FOUND_PROMPT":"The application does not exist.",
     "SUCCESS_DELETE_SHORTCUT_PROMPT":"Application shortcut deleted successfully.",
@@ -41,7 +41,6 @@
         "check":"check | Check if vital files are lost."
     },
     "ALL_COMMANDS_FORMATTED":[
-        "These are usable commands and input formats:",
         "language [lang]        | Set language, cn for Chinese, en for English.",
         "quit                   | Exit program.",
         "help [ /cmd/appl]      | Get help.",

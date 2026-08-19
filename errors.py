@@ -47,42 +47,56 @@ class Errors():
         """处理错误"""
         for code in errors:
             _, solved_key, func, arg = self.ERROR_MAP[code]
-            # 调用对应处理函数
-            func() if arg is None else func(arg)
+            # 调用对应处理函数，失败则提示并跳过后续步骤
+            if not (func() if arg is None else func(arg)):
+                print_error(self.DL.prompts["APPLICATION_PATH_ERROR_PROMPT"])
+                continue
             self.record_error(code)
-            print_info(self.DL.prompts[solved_key])
+            print_warning(self.DL.prompts[solved_key])
 
     def deal_file_not_found(self, fixable=True):
         """处理appls.json丢失的情况"""
-        route = self.DL.APPL_JSON_ROUTE
-
-        # 确定写入内容并同步内存
+        # 确定写入内容
         content = self.DL.save if fixable else {}
+        try:
+            with open(self.DL.APPL_JSON_ROUTE, "w", encoding="utf-8") as f:
+                json.dump(content, f)
+        except OSError:
+            return False
+        # 写入成功才同步内存
         self.DL.appls = content.copy()
-        with open(route, "w", encoding="utf-8") as f:
-            json.dump(content, f)
+        return True
 
     def deal_error_not_found(self):
         """处理error.txt丢失的情况"""
-        with open(self.DL.ERROR_TXT_ROUTE, "w", encoding="utf-8"):
-            pass
+        try:
+            with open(self.DL.ERROR_TXT_ROUTE, "w", encoding="utf-8"):
+                pass
+        except OSError:
+            return False
+        return True
 
     def deal_data_read_error(self, fixable=True):
         """处理读取错误的情况"""
-        route = self.DL.APPL_JSON_ROUTE
-
-        # 确定写入内容并同步内存
+        # 确定写入内容
         content = self.DL.save if fixable else {}
+        try:
+            with open(self.DL.APPL_JSON_ROUTE, "w", encoding="utf-8") as f:
+                json.dump(content, f)
+        except OSError:
+            return False
+        # 写入成功才同步内存
         self.DL.appls = content.copy()
-        with open(route, "w", encoding="utf-8") as f:
-            json.dump(content, f)
+        return True
 
     def record_error(self, code):
         """记录错误"""
         now = str(datetime.now().strftime('%Y/%m/%d %H:%M:%S'))
-        with open(self.DL.ERROR_TXT_ROUTE, "a", encoding="utf-8") as e:
-            e.write("code:" + code + " time:" + now + "\n")
-        del now
+        try:
+            with open(self.DL.ERROR_TXT_ROUTE, "a", encoding="utf-8") as e:
+                e.write("code:" + code + " time:" + now + "\n")
+        except OSError:
+            pass # 错误日志写不了不拖垮修复主流程
 
     def _missing_appls(self):
         """检查应用文件"""

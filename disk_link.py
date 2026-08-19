@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+import subprocess
 
 from pathlib import Path
 from typing import List, Any
@@ -24,20 +25,12 @@ class DiskLink:
         print("正在初始化...")
         print("Initializing...\n")
 
-        self.errors = Errors(self)
-
-        # 默认语言为中文
-        self.language = "cn"
-        self.load_language(self.language)
-
-        # 设置命令
-        self.COMMANDS = ('language', 'quit', 'help', "append", "del", "list", "jump", "check")
-
         # 获取程序所在路径（兼容打包与非打包环境）
         if getattr(sys, 'frozen', False):
             application_path = Path(sys.executable).resolve().parent
         else:
             application_path = Path(__file__).resolve().parent
+        self.BASE_DIR = application_path
 
         # 应用存储文件与错误记录文件路径
         self.APPL_JSON_ROUTE = application_path / "appls.json"
@@ -46,8 +39,14 @@ class DiskLink:
         # 获取硬盘名称（盘符）
         self.DISK_NAME = application_path.drive
 
-        # 输出程序位置
-        print_info("当前程序位置: " + str(application_path) + "\nPresent Program Directory: " + str(application_path) + "\n")
+        self.errors = Errors(self)
+
+        # 默认语言为中文
+        self.language = "cn"
+        self.load_language(self.language)
+
+        # 设置命令
+        self.COMMANDS = ('language', 'quit', 'help', "append", "del", "list", "jump", "check")
 
         # 读取存储的应用和路径
         self.read_texts(True)
@@ -58,8 +57,8 @@ class DiskLink:
         # 设置质问的初数
         self.fun_num = 0
 
-        # 删除无用变量
-        del application_path
+        # 输出程序位置
+        print_info("当前程序位置: " + str(self.BASE_DIR) + "\nPresent Program Directory: " + str(self.BASE_DIR) + "\n")
 
     def mainloop(self):
         """主进程"""
@@ -96,6 +95,10 @@ class DiskLink:
         try:
             with open(self.APPL_JSON_ROUTE) as f1:
                 self.appls = json.load(f1)
+
+        # 文件缺失（修复失败的兜底），保证程序仍可运行
+        except FileNotFoundError:
+            self.appls = {}
 
         # 读取出错
         except json.decoder.JSONDecodeError:
@@ -150,26 +153,26 @@ class DiskLink:
 
         # 输出报错
         else:
-            print(self.prompts["INVALID_PROMPT"])
+            print_warning(self.prompts["INVALID_PROMPT"])
 
     def _max_len(self):
         """求列表中所有字符串最长值，默认值10"""
-        max = 0
+        max_l = 0
         for key in self.appls.keys():
-            if len(key) > max:
-                max = len(key)
-        if max < 10:
-            max = 10
-        return max
+            if len(key) > max_l:
+                max_l = len(key)
+        if max_l < 10:
+            max_l = 10
+        return max_l
 
-    def _print_appls(self, max):
+    def _print_appls(self, max_l):
         """输出所有应用"""
         for key in self.appls.keys():
             # 输出程序名
             print_info(key, end='')
 
             # 输出合适数量的空格
-            for j in range(max - len(key)):
+            for j in range(max_l - len(key)):
                 print_info(' ', end='')
 
             # 输出应用路径
@@ -273,7 +276,7 @@ class DiskLink:
         # 中文
         if lang == 'cn':
             self.language = "cn"
-            with open("lang/zh-CN.json", "r", encoding="utf-8") as f:
+            with open(self.BASE_DIR / "lang/zh-CN.json", "r", encoding="utf-8") as f:
                 dic = json.load(f)
                 self.prompts = dic["PROMPTS"] # type: ignore
                 self.command_helps = dic["COMMAND_HELPS"] # type: ignore
@@ -282,7 +285,7 @@ class DiskLink:
         # 英文
         elif lang == 'en':
             self.language = "en"
-            with open("lang/en.json", "r", encoding="utf-8") as f:
+            with open(self.BASE_DIR / "lang/en.json", "r", encoding="utf-8") as f:
                 dic = json.load(f)
                 self.prompts = dic["PROMPTS"] # type: ignore
                 self.command_helps = dic["COMMAND_HELPS"] # type: ignore
@@ -325,25 +328,25 @@ class DiskLink:
 
         # 处理
         else:
-            # 获得新应用名与地址
+            # 获得新应用名与地址（Path规范化：正斜杠、大小写盘符统一处理）
             new_appl = self.usr[1]
-            new_dir = self.usr[3]
+            p = Path(self.usr[3])
 
-            # 获得已有路径
+            # 获得已有路径（统一小写比较，Windows路径大小写不敏感）
             exist_dir = []
             for key in self.appls.keys():
-                exist_dir.append((self.DISK_NAME + self.appls[key]))
+                exist_dir.append((self.DISK_NAME + self.appls[key]).lower())
 
             # 检查程序是否存在
-            if not os.path.exists(new_dir):
+            if not p.exists():
                 print_warning(self.prompts["NOT_FOUND_UNDER_ROUTE_PROMPT"])
 
             # 程序必须在硬盘中
-            elif new_dir.split('\\')[0] != self.DISK_NAME:
+            elif p.drive.lower() != self.DISK_NAME.lower():
                 print_warning(self.prompts["PATH_NOT_ON_DISK_PROMPT"])
 
             # 后缀必须为.exe
-            elif new_dir.split('\\')[-1][-3:] != "exe":
+            elif p.suffix.lower() != ".exe":
                 print_warning(self.prompts["INVALID_FILE_EXTENSION_PROMPT"])
 
             # 不准重名
@@ -355,8 +358,8 @@ class DiskLink:
                 print_warning(self.prompts["NAME_CONFLICT_PROMPT"])
 
             # 不准重复路径
-            elif new_dir in exist_dir:
-                print_warning(self.prompts["DUPLICATE_PATH_PROMPT"])
+            elif str(p).lower() in exist_dir:
+                print_warning(self.prompts["PATH_CONFLICT_PROMPT"])
 
             # 添加
             else:
@@ -364,9 +367,9 @@ class DiskLink:
                 confirm = input_confirm(self.prompts["CONFIRM_ADD_SHORTCUT_PROMPT"])
 
                 # 确认
-                if confirm == "Y":
-                    # 去掉盘符
-                    new_dir = new_dir[2:]
+                if confirm.strip().lower() == "y":
+                    # 去掉盘符（按实际盘符长度裁剪，保留反斜杠开头的相对路径）
+                    new_dir = str(p)[len(p.drive):]
 
                     # 写入JSON
                     self.appls[new_appl] = new_dir
@@ -378,11 +381,11 @@ class DiskLink:
                         self.errors.check_vitals()
 
                     # 提示并重新读取
-                    print_info("已添加程序:" + new_dir)
+                    print_info(self.prompts["SUCCESS_ADD_APPLICATION_PROMPT"] + new_dir)
 
                 # 取消
-                elif confirm == "n":
-                    pass
+                elif confirm.strip().lower() == "n":
+                    print_info(self.prompts["ADDING_ABORTED_PROMPT"])
 
                 # 报错
                 else:
@@ -397,7 +400,7 @@ class DiskLink:
             confirm = input_confirm(self.prompts["CONFIRM_DELETE_SHORTCUT_PROMPT"])
 
             # 确认
-            if confirm == "Y":
+            if confirm.strip().lower() == "y":
                 # 弹出应用与路径
                 del self.appls[self.usr[1]]
 
@@ -413,7 +416,7 @@ class DiskLink:
                 print_info(self.prompts["SUCCESS_DELETE_SHORTCUT_PROMPT"])
 
             # 取消
-            elif confirm == "n":
+            elif confirm.strip().lower() == "n":
                 print_info(self.prompts["DELETION_ABORTED_PROMPT"])
 
         # 不在已有程序中
@@ -431,17 +434,11 @@ class DiskLink:
     def jump_route(self):
         """打开对应文件资源管理器页面"""
         if self.usr[1] in self.appls.keys():
-            route = self.appls[self.usr[1]].split("\\")
-            route.pop(-1)
-            route = "\\".join(route)
-            command = '"' + self.DISK_NAME + route + '"'
-            print(command)
-            try:
-                os.system("explorer " + command)
-            except FileNotFoundError:
-                print_warning(self.prompts["PROGRAM_MOVED_PROMPT"])
+            # 取应用所在目录并打开资源管理器（列表参数，路径含空格安全）
+            route = str(Path(self.DISK_NAME + self.appls[self.usr[1]]).parent)
+            subprocess.Popen(["explorer", route])
         else:
-            print(self.prompts["PROGRAM_NOT_FOUND_PROMPT"])
+            print_warning(self.prompts["PROGRAM_NOT_FOUND_PROMPT"])
 
     def create_save(self):
         """备份"""

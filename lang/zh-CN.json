@@ -10,7 +10,7 @@
         "PATH_NOT_ON_DISK_PROMPT":"此路径不在硬盘中。",
         "CONFIRM_ADD_SHORTCUT_PROMPT":"您是否确认添加程序快捷方式？(Y/n):",
         "INVALID_FILE_EXTENSION_PROMPT":"文件后缀应为.exe。",
-        "SUCCESS_ADD_APPLICATION_PROMPT":"成功添加应用程序。",
+        "SUCCESS_ADD_APPLICATION_PROMPT":"成功添加应用程序:",
         "ADDING_ABORTED_PROMPT":"添加终止。",
         "PROGRAM_NOT_FOUND_PROMPT":"此程序不存在。",
         "SUCCESS_DELETE_SHORTCUT_PROMPT":"成功删除应用程序快捷方式。",
