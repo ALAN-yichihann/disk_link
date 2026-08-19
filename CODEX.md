@@ -1,6 +1,6 @@
-# CLAUDE.md
+# CODEX.md
 
-此文件为此项目的CLAUDE CODE AI协作提供指导。
+此文件为此项目的CODEX AI协作提供指导。
 
 ## 编写语言
 
@@ -15,7 +15,7 @@
 ## 重要文件及作用
 
 `disk_link.py`：程序主要模块
-`errors.py`：错误处理模块，目前还未完全从主要模块分离
+`errors.py`：错误处理模块。
 `output.py`：输出模块，使用colorama库
 `快捷启动.py`：在硬盘中运行时用于链接到主程序的程序
 
